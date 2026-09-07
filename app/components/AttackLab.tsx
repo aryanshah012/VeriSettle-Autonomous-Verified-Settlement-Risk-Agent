@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
+import { ConsensusStressLab } from "./ConsensusStressLab";
 
 interface ScenarioConfig {
     id: string;
@@ -148,6 +150,7 @@ const SCENARIOS: ScenarioConfig[] = [
 
 export function AttackLab({ className = "" }: { className?: string }) {
     const [activeScenario, setActiveScenario] = useState<ScenarioConfig>(SCENARIOS[0]);
+    const [activeTab, setActiveTab] = useState<"scenarios" | "consensus_lab">("scenarios");
 
     return (
         <div
@@ -178,129 +181,197 @@ export function AttackLab({ className = "" }: { className?: string }) {
                 </div>
             </div>
 
-            {/* Scenario Buttons */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "8px", marginBottom: "20px" }}>
-                {SCENARIOS.map((s) => {
-                    const isSelected = activeScenario.id === s.id;
-                    return (
-                        <button
-                            key={s.id}
-                            type="button"
-                            onClick={() => setActiveScenario(s)}
-                            style={{
-                                padding: "10px 12px",
-                                borderRadius: "12px",
-                                background: isSelected
-                                    ? "linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(168, 85, 247, 0.25))"
-                                    : "rgba(30, 41, 59, 0.5)",
-                                border: `1.5px solid ${isSelected ? "#f87171" : "rgba(71, 85, 105, 0.4)"}`,
-                                color: isSelected ? "#fca5a5" : "#94a3b8",
-                                fontSize: "12px",
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                transition: "all 0.15s ease",
-                                textAlign: "left",
-                            }}
-                        >
-                            <span>{s.icon}</span>
-                            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.title}</span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* Active Scenario Evaluation Box */}
-            <div
-                style={{
-                    background: "rgba(10, 15, 30, 0.7)",
-                    border: "1px solid rgba(71, 85, 105, 0.4)",
-                    borderRadius: "16px",
-                    padding: "18px",
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                    <span style={{ fontSize: "18px" }}>{activeScenario.icon}</span>
-                    <strong style={{ fontSize: "14px", color: "#f8fafc" }}>Scenario: {activeScenario.title}</strong>
-                    <span style={{ fontSize: "12px", color: "#64748b" }}>— {activeScenario.description}</span>
-                </div>
-
-                {/* Intelligence Metrics Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px", marginBottom: "16px" }}>
-                    <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
-                        <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>SOL Spot Price</div>
-                        <div style={{ fontSize: "15px", fontWeight: 800, color: "#38bdf8" }}>${activeScenario.intelligence.priceSol.toFixed(2)}</div>
-                        <div style={{ fontSize: "10px", color: activeScenario.intelligence.priceConfidence > 0.8 ? "#34d399" : "#f87171" }}>
-                            Conf: {(activeScenario.intelligence.priceConfidence * 100).toFixed(0)}%
-                        </div>
-                    </div>
-
-                    <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
-                        <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>Fraud Screening</div>
-                        <div style={{ fontSize: "14px", fontWeight: 800, color: activeScenario.intelligence.fraudVerdict === "clean" ? "#34d399" : "#f87171" }}>
-                            {activeScenario.intelligence.fraudVerdict.toUpperCase()}
-                        </div>
-                        <div style={{ fontSize: "10px", color: "#94a3b8" }}>
-                            Risk: {activeScenario.intelligence.fraudRiskScore}/100
-                        </div>
-                    </div>
-
-                    <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
-                        <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>Network Gas</div>
-                        <div style={{ fontSize: "14px", fontWeight: 800, color: activeScenario.intelligence.gasPriceGwei > 50 ? "#f87171" : "#38bdf8" }}>
-                            {activeScenario.intelligence.gasPriceGwei} Gwei
-                        </div>
-                        <div style={{ fontSize: "10px", color: activeScenario.intelligence.gasPriceGwei > 50 ? "#f87171" : "#34d399" }}>
-                            {activeScenario.intelligence.gasPriceGwei > 50 ? "High Congestion" : "Optimal"}
-                        </div>
-                    </div>
-
-                    <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
-                        <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>Oracle Consensus</div>
-                        <div style={{ fontSize: "13px", fontWeight: 800, color: activeScenario.intelligence.divergentMiners ? "#f87171" : "#34d399" }}>
-                            {activeScenario.intelligence.divergentMiners ? "Divergent (>2%)" : "Quorum Agreed"}
-                        </div>
-                        <div style={{ fontSize: "10px", color: "#94a3b8" }}>MAD Filtering Active</div>
-                    </div>
-                </div>
-
-                {/* News Headline Signal */}
-                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "10px 14px", borderRadius: "10px", marginBottom: "16px", border: "1px solid rgba(71, 85, 105, 0.3)", fontSize: "11px" }}>
-                    <strong style={{ color: "#38bdf8" }}>DeNews Stream (Subnet 101/105): </strong>
-                    <span style={{ color: "#cbd5e1" }}>&quot;{activeScenario.intelligence.sentimentHeadline}&quot;</span>
-                </div>
-
-                {/* Autonomous Decision Verdict */}
-                <div
+            {/* Tab switcher */}
+            <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab("scenarios")}
                     style={{
-                        padding: "14px 18px",
-                        borderRadius: "12px",
-                        background: activeScenario.decision === "AUTO_SETTLE"
-                            ? "rgba(16, 185, 129, 0.15)"
-                            : "rgba(239, 68, 68, 0.15)",
-                        border: `1.5px solid ${activeScenario.decision === "AUTO_SETTLE" ? "#10b981" : "#ef4444"}`,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: "10px",
+                        padding: "7px 16px",
+                        borderRadius: "10px",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        background: activeTab === "scenarios" ? "rgba(239,68,68,0.2)" : "rgba(30,41,59,0.5)",
+                        border: activeTab === "scenarios" ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(71,85,105,0.4)",
+                        color: activeTab === "scenarios" ? "#fca5a5" : "#94a3b8",
+                        transition: "all 0.15s",
                     }}
                 >
-                    <div>
-                        <div style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", fontWeight: 700 }}>
-                            VeriSettle Autonomous Action
-                        </div>
-                        <div style={{ fontSize: "14px", fontWeight: 900, color: activeScenario.decision === "AUTO_SETTLE" ? "#34d399" : "#f87171" }}>
-                            {activeScenario.decisionLabel}
-                        </div>
-                    </div>
-                    <div style={{ fontSize: "11px", color: "#cbd5e1", maxWidth: "420px", textAlign: "right" }}>
-                        {activeScenario.rationale}
-                    </div>
-                </div>
+                    🛡️ Attack Scenarios
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab("consensus_lab")}
+                    style={{
+                        padding: "7px 16px",
+                        borderRadius: "10px",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        background: activeTab === "consensus_lab" ? "rgba(245,158,11,0.2)" : "rgba(30,41,59,0.5)",
+                        border: activeTab === "consensus_lab" ? "1px solid rgba(245,158,11,0.5)" : "1px solid rgba(71,85,105,0.4)",
+                        color: activeTab === "consensus_lab" ? "#fbbf24" : "#94a3b8",
+                        transition: "all 0.15s",
+                    }}
+                >
+                    🔬 Byzantine Consensus Lab
+                </button>
             </div>
+
+            {/* Tab content: Scenarios */}
+            {activeTab === "scenarios" && (
+                <>
+                    {/* Scenario Buttons */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "8px", marginBottom: "20px" }}>
+                        {SCENARIOS.map((s) => {
+                            const isSelected = activeScenario.id === s.id;
+                            return (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => setActiveScenario(s)}
+                                    style={{
+                                        padding: "10px 12px",
+                                        borderRadius: "12px",
+                                        background: isSelected
+                                            ? "linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(168, 85, 247, 0.25))"
+                                            : "rgba(30, 41, 59, 0.5)",
+                                        border: `1.5px solid ${isSelected ? "#f87171" : "rgba(71, 85, 105, 0.4)"}`,
+                                        color: isSelected ? "#fca5a5" : "#94a3b8",
+                                        fontSize: "12px",
+                                        fontWeight: 700,
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "6px",
+                                        transition: "all 0.15s ease",
+                                        textAlign: "left",
+                                    }}
+                                >
+                                    <span>{s.icon}</span>
+                                    <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.title}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Active Scenario Evaluation Box */}
+                    <div
+                        style={{
+                            background: "rgba(10, 15, 30, 0.7)",
+                            border: "1px solid rgba(71, 85, 105, 0.4)",
+                            borderRadius: "16px",
+                            padding: "18px",
+                        }}
+                    >
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                            <span style={{ fontSize: "18px" }}>{activeScenario.icon}</span>
+                            <strong style={{ fontSize: "14px", color: "#f8fafc" }}>Scenario: {activeScenario.title}</strong>
+                            <span style={{ fontSize: "12px", color: "#64748b" }}>— {activeScenario.description}</span>
+                        </div>
+
+                        {/* Intelligence Metrics Grid */}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px", marginBottom: "16px" }}>
+                            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
+                                <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>SOL Spot Price</div>
+                                <div style={{ fontSize: "15px", fontWeight: 800, color: "#38bdf8" }}>${activeScenario.intelligence.priceSol.toFixed(2)}</div>
+                                <div style={{ fontSize: "10px", color: activeScenario.intelligence.priceConfidence > 0.8 ? "#34d399" : "#f87171" }}>
+                                    Conf: {(activeScenario.intelligence.priceConfidence * 100).toFixed(0)}%
+                                </div>
+                            </div>
+
+                            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
+                                <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>Fraud Screening</div>
+                                <div style={{ fontSize: "14px", fontWeight: 800, color: activeScenario.intelligence.fraudVerdict === "clean" ? "#34d399" : "#f87171" }}>
+                                    {activeScenario.intelligence.fraudVerdict.toUpperCase()}
+                                </div>
+                                <div style={{ fontSize: "10px", color: "#94a3b8" }}>
+                                    Risk: {activeScenario.intelligence.fraudRiskScore}/100
+                                </div>
+                            </div>
+
+                            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
+                                <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>Network Gas</div>
+                                <div style={{ fontSize: "14px", fontWeight: 800, color: activeScenario.intelligence.gasPriceGwei > 50 ? "#f87171" : "#38bdf8" }}>
+                                    {activeScenario.intelligence.gasPriceGwei} Gwei
+                                </div>
+                                <div style={{ fontSize: "10px", color: activeScenario.intelligence.gasPriceGwei > 50 ? "#f87171" : "#34d399" }}>
+                                    {activeScenario.intelligence.gasPriceGwei > 50 ? "High Congestion" : "Optimal"}
+                                </div>
+                            </div>
+
+                            <div style={{ background: "rgba(30, 41, 59, 0.5)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(71, 85, 105, 0.3)" }}>
+                                <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase" }}>Oracle Consensus</div>
+                                <div style={{ fontSize: "13px", fontWeight: 800, color: activeScenario.intelligence.divergentMiners ? "#f87171" : "#34d399" }}>
+                                    {activeScenario.intelligence.divergentMiners ? "Divergent (>2%)" : "Quorum Agreed"}
+                                </div>
+                                <div style={{ fontSize: "10px", color: "#94a3b8" }}>MAD Filtering Active</div>
+                            </div>
+                        </div>
+
+                        {/* News Headline Signal */}
+                        <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "10px 14px", borderRadius: "10px", marginBottom: "16px", border: "1px solid rgba(71, 85, 105, 0.3)", fontSize: "11px" }}>
+                            <strong style={{ color: "#38bdf8" }}>DeNews Stream (Subnet 101/105): </strong>
+                            <span style={{ color: "#cbd5e1" }}>&quot;{activeScenario.intelligence.sentimentHeadline}&quot;</span>
+                        </div>
+
+                        {/* Autonomous Decision Verdict */}
+                        <div
+                            style={{
+                                padding: "14px 18px",
+                                borderRadius: "12px",
+                                background: activeScenario.decision === "AUTO_SETTLE"
+                                    ? "rgba(16, 185, 129, 0.15)"
+                                    : "rgba(239, 68, 68, 0.15)",
+                                border: `1.5px solid ${activeScenario.decision === "AUTO_SETTLE" ? "#10b981" : "#ef4444"}`,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                flexWrap: "wrap",
+                                gap: "10px",
+                            }}
+                        >
+                            <div>
+                                <div style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", fontWeight: 700 }}>
+                                    VeriSettle Autonomous Action
+                                </div>
+                                <div style={{ fontSize: "14px", fontWeight: 900, color: activeScenario.decision === "AUTO_SETTLE" ? "#34d399" : "#f87171" }}>
+                                    {activeScenario.decisionLabel}
+                                </div>
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end" }}>
+                                <div style={{ fontSize: "11px", color: "#cbd5e1", maxWidth: "420px", textAlign: "right" }}>
+                                    {activeScenario.rationale}
+                                </div>
+                                {activeScenario.decision === "AUTO_SETTLE" && (
+                                    <Link
+                                        href="/settlement"
+                                        style={{
+                                            fontSize: "0.75rem",
+                                            padding: "5px 12px",
+                                            borderRadius: "8px",
+                                            background: "rgba(16,185,129,0.2)",
+                                            border: "1px solid rgba(16,185,129,0.5)",
+                                            color: "#34d399",
+                                            textDecoration: "none",
+                                            fontWeight: 700,
+                                            whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        → Try in Settlement Engine
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Tab content: Consensus Lab */}
+            {activeTab === "consensus_lab" && (
+                <ConsensusStressLab />
+            )}
         </div>
     );
 }

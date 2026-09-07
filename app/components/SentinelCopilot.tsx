@@ -8,6 +8,18 @@ interface Message {
     content: string;
 }
 
+interface TxContext {
+    transactionId?: string;
+    currency?: string;
+    amount?: string;
+    counterparty?: string;
+    step?: string;
+    riskScore?: number;
+    riskDecision?: string;
+    amountOut?: number;
+    merkleRoot?: string;
+}
+
 const DEFAULT_QUESTIONS = [
     "Why was my settlement held or denied?",
     "How does the binary Merkle tree prove miner consensus?",
@@ -25,7 +37,30 @@ export function SentinelCopilot({ activeTxId }: { activeTxId?: string }) {
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [liveTxCtx, setLiveTxCtx] = useState<TxContext | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Listen to settlement engine events
+    useEffect(() => {
+        const handleActiveTx = (e: Event) => {
+            const ctx = (e as CustomEvent<TxContext>).detail;
+            setLiveTxCtx(ctx);
+
+            // Proactively inject a contextual Sentinel message
+            if (ctx.step === "decided" && ctx.riskDecision) {
+                const isApproved = ctx.riskDecision === "auto_approve";
+                const msg = isApproved
+                    ? `✅ **Settlement ready to execute!**\n\nRisk score: ${ctx.riskScore}/100 · Decision: AUTO APPROVED\nAll 6 intelligence signals verified. You can safely execute on-chain.`
+                    : `🛑 **Settlement blocked for your protection.**\n\nRisk score: ${ctx.riskScore}/100 · Decision: ${ctx.riskDecision?.toUpperCase()}\nThe risk engine identified elevated threat signals. Ask me why this decision was made.`;
+                setMessages(prev => [...prev, { role: "assistant", content: msg }]);
+            } else if (ctx.step === "done" && ctx.merkleRoot) {
+                const msg = `🔐 **Settlement sealed on-chain!**\n\nMerkle Root: \`${ctx.merkleRoot?.slice(0, 20)}…\`\nYour cryptographic proof is now anchored on Solana Devnet. Ask me how to verify it.`;
+                setMessages(prev => [...prev, { role: "assistant", content: msg }]);
+            }
+        };
+        window.addEventListener("verisettle-active-tx", handleActiveTx);
+        return () => window.removeEventListener("verisettle-active-tx", handleActiveTx);
+    }, []);
 
     useEffect(() => {
         if (open) {
@@ -99,6 +134,21 @@ export function SentinelCopilot({ activeTxId }: { activeTxId?: string }) {
                         boxShadow: "0 0 8px #10b981",
                     }} />
                 </button>
+            )}
+
+            {/* Pulsing notification dot when tx is active */}
+            {!open && liveTxCtx && liveTxCtx.step !== "form" && (
+                <div style={{
+                    position: "absolute",
+                    top: "-4px",
+                    right: "-4px",
+                    width: "14px",
+                    height: "14px",
+                    borderRadius: "50%",
+                    background: liveTxCtx.step === "done" ? "#10b981" : liveTxCtx.step === "decided" && !liveTxCtx.riskDecision?.includes("approve") ? "#ef4444" : "#38bdf8",
+                    border: "2px solid rgba(10,15,30,0.9)",
+                    animation: "pulse 1.5s infinite",
+                }} />
             )}
 
             {/* Chat Box Modal */}

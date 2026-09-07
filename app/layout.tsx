@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { Appbar } from "./components/Appbar";
 import { Providers } from "./providers";
@@ -40,7 +41,9 @@ export default function RootLayout({
             </head>
             <body style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
                 <Providers>
-                    <Appbar />
+                    <Suspense fallback={<div style={{ height: "64px", background: "rgba(5,11,24,0.88)" }} />}>
+                        <Appbar />
+                    </Suspense>
                     <main style={{ minHeight: "calc(100vh - 64px)", position: "relative", zIndex: 1 }}>
                         {children}
                     </main>

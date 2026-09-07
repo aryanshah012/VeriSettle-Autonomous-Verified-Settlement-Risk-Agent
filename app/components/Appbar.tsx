@@ -3,13 +3,16 @@
 import React from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { VeriSettleLogo } from "./VeriSettleLogo";
+
 
 export const Appbar = () => {
     const session = useSession();
     const isLoggedIn = !!session.data?.user;
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const tabParam = searchParams?.get("tab") ?? null;
     const [isSimulation, setIsSimulation] = React.useState(false);
 
     React.useEffect(() => {
@@ -51,18 +54,23 @@ export const Appbar = () => {
                 </Link>
 
                 <nav style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <NavLink href="/settlement" active={pathname === "/settlement"}>
+                    <NavLink href="/settlement" active={pathname === "/settlement" && !tabParam}>
                         Settle
                     </NavLink>
-                    <NavLink href="/settlement?tab=intelligence" active={pathname === "/analytics" || pathname === "/intelligence"}>
+                    <NavLink href="/settlement?tab=intelligence" active={pathname === "/settlement" && tabParam === "intelligence"}>
                         Intelligence
                     </NavLink>
-                    <NavLink href="/settlement?tab=attack_lab" active={false}>
+                    <NavLink href="/settlement?tab=attack_lab" active={pathname === "/settlement" && tabParam === "attack_lab"}>
                         Attack Lab
                     </NavLink>
                     <NavLink href="/verify" active={pathname === "/verify"}>
                         Proofs
                     </NavLink>
+                    {isLoggedIn && (
+                        <NavLink href="/analytics" active={pathname === "/analytics"}>
+                            Telemetry
+                        </NavLink>
+                    )}
                     {isLoggedIn && (
                         <NavLink href="/dashboard" active={pathname === "/dashboard"}>
                             Activity
@@ -186,8 +194,18 @@ export const Appbar = () => {
                             cursor: "pointer",
                             transition: "all 0.2s",
                         }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = "linear-gradient(135deg, rgba(6, 182, 212, 0.4), rgba(59, 130, 246, 0.4))";
+                            e.currentTarget.style.borderColor = "rgba(6, 182, 212, 0.8)";
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = "linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(59, 130, 246, 0.25))";
+                            e.currentTarget.style.borderColor = "rgba(6, 182, 212, 0.5)";
+                        }}
                     >
+                        <span style={{ fontSize: "0.9rem" }}>⚡</span>
                         <span>Enter Demo</span>
+                        <span style={{ fontSize: "0.7rem", opacity: 0.7 }}>→</span>
                     </button>
                 )}
             </div>

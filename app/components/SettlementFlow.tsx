@@ -5,6 +5,8 @@ import axios from "axios";
 import { MinerCallLog, LogEntry } from "./MinerCallLog";
 import { DemoPresets } from "./DemoPresets";
 import { SettlementCertificate } from "./SettlementCertificate";
+import { PipelineViz, PipelineStage } from "./PipelineViz";
+import { RiskGauge } from "./RiskGauge";
 
 const SUPPORTED_CURRENCIES = [
     { id: "SOL", label: "Solana", symbol: "◎", color: "#9945FF" },
@@ -154,6 +156,11 @@ export function SettlementFlow() {
             setQuote(qData);
             setTxId(qData.transactionId);
 
+            // Broadcast active tx context for SentinelCopilot
+            window.dispatchEvent(new CustomEvent("verisettle-active-tx", {
+                detail: { transactionId: qData.transactionId, currency, amount, counterparty, step: "verifying" }
+            }));
+
             addLog("ok", `Spot price & FX quorum reached across 3 miners (${(qData.priceConsensus.agreementRatio * 100).toFixed(0)}% agreement)`);
 
             // 2. Automatically screen counterparty risk
@@ -165,6 +172,11 @@ export function SettlementFlow() {
             const sData: ScreenResult = sRes.data;
             setScreen(sData);
             setStep("decided");
+
+            // Broadcast decision to SentinelCopilot
+            window.dispatchEvent(new CustomEvent("verisettle-active-tx", {
+                detail: { transactionId: qData.transactionId, currency, amount, counterparty, step: "decided", riskScore: sData.riskScore, riskDecision: sData.riskDecision }
+            }));
 
             addLog("ok", `Risk assessment complete: Score ${sData.riskScore}/100 → ${sData.riskDecision.toUpperCase()}`);
         } catch (e: unknown) {
@@ -193,6 +205,10 @@ export function SettlementFlow() {
                 solanaAnchor: anchor,
             });
             setStep("done");
+            // Broadcast settlement complete to SentinelCopilot
+            window.dispatchEvent(new CustomEvent("verisettle-active-tx", {
+                detail: { transactionId: txId, currency, step: "done", amountOut: res.data.amountOut, merkleRoot: res.data.proofBundle?.bundleHash }
+            }));
             addLog("ok", `Settlement complete! ₹${res.data.amountOut?.toLocaleString("en-IN")} credited to INR wallet.`);
             if (anchor?.signature) {
                 addLog("ok", `Solana Devnet Memo: ${anchor.signature.slice(0, 24)}… (Slot ${anchor.slot || "confirmed"})`, true);
@@ -227,6 +243,26 @@ export function SettlementFlow() {
 
     const isHalted = screen?.riskDecision === "auto_deny" || screen?.riskDecision === "hold_for_review";
     const isApproved = screen && !isHalted;
+
+    // Derive pipeline stage states from current step
+    const PIPELINE_STAGES = [
+        { id: "intent",   label: "Intent",   icon: "📝", sublabel: "Order formed" },
+        { id: "quote",    label: "Quote",    icon: "💱", sublabel: "Subnet 101" },
+        { id: "screen",   label: "Screen",   icon: "🛡️", sublabel: "Subnet 102" },
+        { id: "decide",   label: "Decide",   icon: "🤖", sublabel: "Risk engine" },
+        { id: "settle",   label: "Settle",   icon: "⚡", sublabel: "On-chain" },
+        { id: "proof",    label: "Proof",    icon: "🔐", sublabel: "Merkle seal" },
+    ];
+    const getPipelineStates = (): PipelineStage[] => {
+        if (step === "form")      return ["idle",     "idle",     "idle",     "idle",     "idle",     "idle"];
+        if (step === "verifying") return ["complete", "active",   "active",   "idle",     "idle",     "idle"];
+        if (step === "decided")   return ["complete", "complete", "complete", "complete", "idle",     "idle"];
+        if (step === "settling")  return ["complete", "complete", "complete", "complete", "active",   "idle"];
+        if (step === "done")      return ["complete", "complete", "complete", "complete", "complete", "complete"];
+        if (step === "error")     return ["complete", "error",    "error",    "idle",     "idle",     "idle"];
+        return ["idle", "idle", "idle", "idle", "idle", "idle"];
+    };
+    const pipelineStates = getPipelineStates();
 
     return (
         <div style={{ maxWidth: "1150px", margin: "0 auto" }}>
@@ -288,6 +324,26 @@ export function SettlementFlow() {
                     <DemoPresets onApply={applyPreset} />
                 </div>
             )}
+
+            {/* Pipeline Visualization - Always visible, driven by step */}
+            <div style={{
+                marginBottom: "20px",
+                background: "rgba(15, 23, 42, 0.7)",
+                border: `1px solid ${
+                    step === "error" ? "rgba(239,68,68,0.4)" :
+                    step === "done" ? "rgba(16,185,129,0.4)" :
+                    step === "verifying" || step === "settling" ? "rgba(6,182,212,0.4)" :
+                    "rgba(51,65,85,0.5)"
+                }`,
+                borderRadius: "14px",
+                boxShadow: step === "done" ? "0 0 20px rgba(16,185,129,0.1)" : step === "verifying" ? "0 0 20px rgba(6,182,212,0.1)" : "none",
+            }}>
+                <PipelineViz
+                    stages={PIPELINE_STAGES}
+                    currentStageIndex={["form","verifying","decided","settling","done","error"].indexOf(step)}
+                    stageStates={pipelineStates}
+                />
+            </div>
 
             {/* Main 2-Column Interface: Settlement vs Telegraph Intelligence */}
             <div style={{
@@ -581,6 +637,55 @@ export function SettlementFlow() {
                             {screen?.overallConfidence ? `${(screen.overallConfidence * 100).toFixed(1)}%` : "95.8%"}
                         </div>
                     </div>
+
+                    {/* Risk Gauge - only shown once risk score is available */}
+                    {screen && (
+                        <div style={{
+                            marginTop: "16px",
+                            padding: "16px",
+                            background: "rgba(15, 23, 42, 0.6)",
+                            border: `1px solid ${
+                                screen.riskDecision === "auto_deny" ? "rgba(239,68,68,0.4)" :
+                                screen.riskDecision === "hold_for_review" ? "rgba(245,158,11,0.4)" :
+                                "rgba(16,185,129,0.35)"
+                            }`,
+                            borderRadius: "12px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "24px",
+                            flexWrap: "wrap",
+                        }}>
+                            <RiskGauge
+                                score={screen.riskScore}
+                                decision={screen.riskDecision as any}
+                                size={130}
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "140px" }}>
+                                {screen.signals?.slice(0, 3).map(sig => (
+                                    <div key={sig.name} style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.7rem" }}>
+                                            <span style={{ color: "#94a3b8", textTransform: "capitalize" }}>
+                                                {sig.name.replace(/_/g, " ")}
+                                            </span>
+                                            <span style={{ color: sig.score > 60 ? "#ef4444" : sig.score > 30 ? "#f59e0b" : "#34d399", fontWeight: 600 }}>
+                                                {sig.score}/100
+                                            </span>
+                                        </div>
+                                        <div style={{ height: "4px", background: "rgba(255,255,255,0.08)", borderRadius: "4px", overflow: "hidden" }}>
+                                            <div style={{
+                                                height: "100%",
+                                                width: `${sig.score}%`,
+                                                background: sig.score > 60 ? "#ef4444" : sig.score > 30 ? "#f59e0b" : "#34d399",
+                                                borderRadius: "4px",
+                                                transition: "width 0.5s ease",
+                                            }} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
