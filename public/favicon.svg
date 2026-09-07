@@ -1,0 +1,64 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ic-fav-primary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="ic-fav-glow" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="ic-fav-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="ic-fav-inner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Shield -->
+  <path
+    d="M24 3L42 12V27C42 36.4 34.3 43.6 24 46C13.7 43.6 6 36.4 6 27V12L24 3Z"
+    fill="url(#ic-fav-inner)"
+    stroke="url(#ic-fav-border)"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Subtle Matrix Accent -->
+  <path
+    d="M24 5V44M8 20H40M11 31H37"
+    stroke="#06b6d4"
+    stroke-opacity="0.25"
+    stroke-width="1"
+    stroke-dasharray="2 2"
+  />
+
+  <!-- "I" Bar -->
+  <rect x="17" y="17" width="4" height="14" rx="1.5" fill="url(#ic-fav-primary)" />
+  <circle cx="19" cy="13.5" r="2" fill="#22d3ee" />
+
+  <!-- "C" Arc -->
+  <path
+    d="M33 19.5C31.2 17.5 28.5 16.5 25.5 16.5C21 16.5 17.5 19.5 17.5 24C17.5 28.5 21 31.5 25.5 31.5C28.8 31.5 31.5 30.2 33 28"
+    stroke="url(#ic-fav-primary)"
+    stroke-width="3.5"
+    stroke-linecap="round"
+  />
+
+  <!-- Verification Checkmark Ray -->
+  <path
+    d="M25 24.5L28 27.5L35.5 19.5"
+    stroke="url(#ic-fav-glow)"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Top Beacon Point -->
+  <circle cx="24" cy="7" r="1.8" fill="#34d399" />
+</svg>
