@@ -269,7 +269,7 @@ export function AttackLab({ className = "" }: { className?: string }) {
                 {/* News Headline Signal */}
                 <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "10px 14px", borderRadius: "10px", marginBottom: "16px", border: "1px solid rgba(71, 85, 105, 0.3)", fontSize: "11px" }}>
                     <strong style={{ color: "#38bdf8" }}>DeNews Stream (Subnet 101/105): </strong>
-                    <span style={{ color: "#cbd5e1" }}>"{activeScenario.intelligence.sentimentHeadline}"</span>
+                    <span style={{ color: "#cbd5e1" }}>&quot;{activeScenario.intelligence.sentimentHeadline}&quot;</span>
                 </div>
 
                 {/* Autonomous Decision Verdict */}

@@ -106,7 +106,7 @@ export function QualityFlywheelViz({ className = "" }: { className?: string }) {
                         <span>Telegraph Quality Flywheel Visualization</span>
                     </div>
                     <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0 0" }}>
-                        Evidence of Telegraph's core premise: Higher quality scores $\rightarrow$ Higher leaderboard rank $\rightarrow$ Dynamic routing preference.
+                        Evidence of Telegraph&apos;s core premise: Higher quality scores &rarr; Higher leaderboard rank &rarr; Dynamic routing preference.
                     </p>
                 </div>
 

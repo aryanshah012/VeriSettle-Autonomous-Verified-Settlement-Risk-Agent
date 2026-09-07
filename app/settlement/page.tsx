@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { SettlementFlow } from "../components/SettlementFlow";
 import { TransactionHistory } from "../components/TransactionHistory";
@@ -10,7 +10,7 @@ import { TelegraphDecisionTrace } from "../components/TelegraphDecisionTrace";
 import { AttackLab } from "../components/AttackLab";
 import { QualityFlywheelViz } from "../components/QualityFlywheelViz";
 
-export default function SettlementPage() {
+function SettlementContent() {
     const searchParams = useSearchParams();
     const tabParam = searchParams.get("tab");
 
@@ -202,5 +202,26 @@ export default function SettlementPage() {
                 {activeTab === "proofs" && <TransactionHistory />}
             </div>
         </div>
+    );
+}
+
+export default function SettlementPage() {
+    return (
+        <Suspense fallback={
+            <div style={{
+                minHeight: "100vh",
+                background: "radial-gradient(ellipse at 50% 0%, #0d1e3d 0%, #050b18 75%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#38bdf8",
+                fontSize: "1rem",
+                fontWeight: 600,
+            }}>
+                Loading VeriSettle Console…
+            </div>
+        }>
+            <SettlementContent />
+        </Suspense>
     );
 }
