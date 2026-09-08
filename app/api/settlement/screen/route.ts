@@ -69,20 +69,20 @@ export async function POST(req: NextRequest) {
             resolveConsensus(transactionId, newsCalls, { categoricalField: "overallSentiment" }),
         ]);
 
-        // Track on-chain velocity in the last 2 minutes
+        // Track on-chain velocity in the last 5 minutes (relaxed for demo)
         let velocityLevel: "normal" | "elevated" | "high" = "normal";
         try {
             const recentTxs = await db.transactionIntent.findMany({
                 where: { userId: transaction.userId },
                 orderBy: { createdAt: "desc" },
-                take: 10,
+                take: 20,
             });
-            const twoMinutesAgo = Date.now() - 2 * 60 * 1000;
+            const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
             const countInWindow = (recentTxs || []).filter(
-                (t: any) => new Date(t.createdAt).getTime() > twoMinutesAgo
+                (t: any) => new Date(t.createdAt).getTime() > fiveMinutesAgo
             ).length;
-            if (countInWindow >= 4) velocityLevel = "high";
-            else if (countInWindow >= 2) velocityLevel = "elevated";
+            if (countInWindow >= 10) velocityLevel = "high";
+            else if (countInWindow >= 6) velocityLevel = "elevated";
         } catch {
             // Fallback to normal velocity
         }
