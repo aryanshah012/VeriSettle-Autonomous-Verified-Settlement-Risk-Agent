@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^7.10.0",
     "@solana/spl-token": "^0.4.8",
     "@solana/web3.js": "^1.95.2",
     "@x402/evm": "^2.25.0",
