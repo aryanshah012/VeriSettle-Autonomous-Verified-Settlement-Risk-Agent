@@ -1,5 +1,7 @@
 # 🛡️ VeriSettle
 
+[![CI](https://github.com/aryanshah012/VeriSettle-Autonomous-Verified-Settlement-Risk-Agent/actions/workflows/ci.yml/badge.svg)](https://github.com/aryanshah012/VeriSettle-Autonomous-Verified-Settlement-Risk-Agent/actions/workflows/ci.yml)
+
 ### Verified Intelligence Before Value Moves
 
 VeriSettle is an **autonomous verified settlement risk agent** built for the Telegraph Protocol hackathon. It gathers independent signals, checks consensus and risk, and only allows settlement when verification requirements are satisfied.
@@ -95,3 +97,10 @@ VeriSettle is designed around a simple principle: external intelligence should b
 
 ---
 Built for the **Telegraph Protocol Hackathon — Track 3: Applications**.
+
+## Engineering Standards
+
+- Automated CI validates changes on pushes and pull requests.
+- Dependabot monitors Python and/or JavaScript dependencies where applicable.
+- [CONTRIBUTING.md](CONTRIBUTING.md) documents the development workflow and review expectations.
+- [SECURITY.md](SECURITY.md) documents responsible vulnerability reporting and security principles.
